@@ -1,0 +1,61 @@
+{
+  "host_name": "mechrevo",
+
+  "printer_name_0": "ZDesigner ZD888-203dpi ZPL",
+
+  "printer_name_1": "",
+
+  "batch_nums": 36,
+
+  "modes": [
+    {
+      "Mode": "EF1E-RL",
+      "MotorCode": "1A011431"
+    },
+    {
+      "Mode": "EF1E-RR",
+      "MotorCode": "1A011432"
+    },
+    {
+      "Mode": "CS1E-FL",
+      "MotorCode": "1A011432"
+    },
+    {
+      "Mode": "CS1E-FR",
+      "MotorCode": "1A011431"
+    },
+    {
+      "Mode": "CS1E-RL",
+      "MotorCode": "1A011431"
+    },
+    {
+      "Mode": "CS1E-RR",
+      "MotorCode": "1A011432"
+    },
+    {
+      "Mode": "BX1E-RL",
+      "MotorCode": "1A011432"
+    },
+    {
+      "Mode": "BX1E-RR",
+      "MotorCode": "1A011431"
+    },
+    {
+      "Mode": "DX11-FL",
+      "MotorCode": "1A011432"
+    },
+    {
+      "Mode": "DX11-FR",
+      "MotorCode": "1A011431"
+    },
+    {
+      "Mode": "DX11-RL",
+      "MotorCode": "1A011431"
+    },
+    {
+      "Mode": "DX11-RR",
+      "MotorCode": "1A011432"
+    }
+
+  ]
+}
