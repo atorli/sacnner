@@ -55,6 +55,11 @@ namespace BarCode
         private string printer1_path = string.Empty;
 
         /// <summary>
+        /// 批次处理计数器
+        /// </summary>
+        private int batch_counter = 0;
+
+        /// <summary>
         /// 默认构造器，初始化一些配置
         /// </summary>
         public MainWindow()
@@ -79,6 +84,9 @@ namespace BarCode
 
             //小标签打印机路径
             printer0_path = $@"\\{config?.HostName}\{config?.PrinterName0}";
+
+            //大标签打印机路径
+            printer1_path = $@"\\{config?.HostName}\{config?.PrinterName1}";
         }
 
         /// <summary>
@@ -90,6 +98,11 @@ namespace BarCode
         {
             //设置motor_code_label的绑定
             motor_code_label.DataContext = mode_combobox.SelectedItem;
+
+            //每次切换类型将批次处理数量清0
+            ResetBatchCounter();
+
+            logger?.Info($"切换至标签类型:{(motor_code_label.DataContext as ModeModel)?.MotorCode}");            
         }
 
         /// <summary>
@@ -99,7 +112,9 @@ namespace BarCode
         /// <param name="e"></param>
         private void mode_combobox_DropDownClosed(object sender, EventArgs e)
         {
+            pring_big_label.IsEnabled = true;
             code_textbox.IsEnabled = true;
+
             InputGetFoucs();
 
             Flow.Step = "请扫描电机标签";
@@ -114,8 +129,8 @@ namespace BarCode
         {
             start.IsEnabled = false;
             stop.IsEnabled = true;
-
             mode_combobox.IsEnabled = true;
+
             Flow.Step = "请标签选型";
         }
 
@@ -134,9 +149,11 @@ namespace BarCode
 
             code_textbox.IsEnabled = false;
             mode_combobox.IsEnabled = false;
+            stop.IsEnabled = false;
+            pring_big_label.IsEnabled= false;
 
             start.IsEnabled = true;
-            stop.IsEnabled = false;
+
             Flow.Step = "请启动设备";
         }
 
@@ -147,19 +164,20 @@ namespace BarCode
         /// <param name="e"></param>
         private void code_textbox_TextChanged(object sender, TextChangedEventArgs e)
         {
-
             if (code_textbox.Text.EndsWith(Environment.NewLine))
             {
-                //匹配到换行就表示数据结束
-                //todo: 处理逻辑
+                //匹配到换行就表示数据结束                
                 string input = code_textbox.Text.Trim();
+                string selected_motor_code = motor_code_label.Content.ToString() ?? string.Empty;
 
-                if (input != motor_code_label.Content.ToString())
+                if (input != selected_motor_code)
                 {
                     Flow.Step = "匹配失败";
                     compare_result_model.Color = "Red";
                     compare_result_model.Result = "失败";
-                    MessageBox.Show("扫描电机标签与选择的电机零件号不匹配！", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+
+                    logger?.Error($"扫描的电机零件号与选择的电机零件号不匹配,扫描的编码为:{input},选择的编码为{selected_motor_code}");
+                    MessageBox.Show("扫描电机零件号与选择的电机零件号不匹配！", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
                 else
                 {
@@ -168,16 +186,34 @@ namespace BarCode
                         Flow.Step = "正在打印小标签";
                         compare_result_model.Color = "Green";
                         compare_result_model.Result = "成功";
-                        string printer_code_path = $@"Template/{(mode_combobox.SelectedItem as ModeModel)?.Mode}.prn";
-                        File.Copy(printer_code_path, printer0_path);
+
+                        logger?.Info($"开始打印电机零件号{selected_motor_code}对应的小标签");
+
+                        string small_template_path = $@"Template/{(mode_combobox.SelectedItem as ModeModel)?.Mode}.prn";
+                        File.Copy(small_template_path, printer0_path);
                         //打印小标签
+                        ++batch_counter;
+                        if (batch_counter == config?.BatchNums)
+                        {
+                            Flow.Step = "正在打印大标签";
+                            //如果达到大标签打印次数，开始打印打标签，并且重置计数器，开始下一轮技术
+
+                            logger?.Info($"达到批次处理上限，开始打印电机零件号{selected_motor_code}对应的大标签");
+
+                            string big_template_path = $@"Template/{(mode_combobox.SelectedItem as ModeModel)?.Mode}-B.prn";
+                            File.Copy(big_template_path, printer1_path);
+
+                            ResetBatchCounter();
+                        }
                     }
                     catch (Exception ex)
                     {
                         logger?.Error(ex);
                     }
                 }
+                //清空输入框的内容
                 code_textbox.Clear();
+                //输入框再次获取焦点
                 InputGetFoucs();
                 Flow.Step = "请扫描电机标签";
             }
@@ -209,9 +245,19 @@ namespace BarCode
         /// <param name="e"></param>
         private void pring_big_label_Click(object sender, RoutedEventArgs e)
         {
-
-
+            Flow.Step = "正在打印大标签";
+            try
+            {
+                string big_template_path = $@"Template/{(mode_combobox.SelectedItem as ModeModel)?.Mode}-B.prn";
+                File.Copy(big_template_path, printer1_path);
+            }
+            catch(Exception ex)
+            {
+                logger?.Error(ex);
+            }
             InputGetFoucs();
+
+            Flow.Step = "请扫描电机标签";
         }
 
         /// <summary>
@@ -222,5 +268,12 @@ namespace BarCode
             code_textbox.Focus();
         }
 
+        /// <summary>
+        /// 重置批次计数器为0
+        /// </summary>
+        private void ResetBatchCounter()
+        {
+            batch_counter = 0;
+        }
     }
 }
