@@ -1,60 +1,101 @@
 {
   "host_name": "mechrevo",
 
-  "printer_name_0": "ZDesigner ZD888-203dpi ZPL",
+  "printer_ip": "192.168.0.1",
+  
+  "printer_port": 9100,
 
-  "printer_name_1": "ZDesigner ZD888-203dpi ZPL",
+  "buzzer_ip": "192.168.0.2",
+
+  "buzzer_port": 9100,
 
   "batch_nums": 1,
 
   "modes": [
     {
-      "Mode": "EF1E-RL",
-      "MotorCode": "1A011431"
+      "mode": "EF1E-RL",
+      "motor_code": "1A011431",
+      "print_nums": 20,
+      "small_label_cmd": "EF1E-RL",
+      "large_label_cmd": "EF1E-RL-B"
     },
     {
-      "Mode": "EF1E-RR",
-      "MotorCode": "1A011432"
+      "mode": "EF1E-RR",
+      "motor_code": "1A011432",
+      "print_nums": 20,
+      "small_label_cmd": "EF1E-RR",
+      "large_label_cmd": "EF1E-RR-B"
     },
     {
-      "Mode": "CS1E-FL",
-      "MotorCode": "1A011432"
+      "mode": "CS1E-FL",
+      "motor_code": "1A011432",
+      "print_nums": 20,
+      "small_label_cmd": "CS1E-FL",
+      "large_label_cmd": "CS1E-FL-B"
     },
     {
-      "Mode": "CS1E-FR",
-      "MotorCode": "1A011431"
+      "mode": "CS1E-FR",
+      "motor_code": "1A011431",
+      "print_nums": 20,
+      "small_label_cmd": "CS1E-FR",
+      "large_label_cmd": "CS1E-FR-B"
     },
     {
-      "Mode": "CS1E-RL",
-      "MotorCode": "1A011431"
+      "mode": "CS1E-RL",
+      "motor_code": "1A011431",
+      "print_nums": 20,
+      "small_label_cmd": "CS1E-RL",
+      "large_label_cmd": "CS1E-RL-B"
     },
     {
-      "Mode": "CS1E-RR",
-      "MotorCode": "1A011432"
+      "mode": "CS1E-RR",
+      "motor_code": "1A011432",
+      "print_nums": 20,
+      "small_label_cmd": "CS1E-RR",
+      "large_label_cmd": "CS1E-RR-B"
+
     },
     {
-      "Mode": "BX1E-RL",
-      "MotorCode": "1A011432"
+      "mode": "BX1E-RL",
+      "motor_code": "1A011432",
+      "print_nums": 20,
+      "small_label_cmd": "BX1E-RL",
+      "large_label_cmd": "BX1E-RL-B"
     },
     {
-      "Mode": "BX1E-RR",
-      "MotorCode": "1A011431"
+      "mode": "BX1E-RR",
+      "motor_code": "1A011431",
+      "print_nums": 20,
+      "small_label_cmd": "BX1E-RR",
+      "large_label_cmd": "BX1E-RR-B"
     },
     {
-      "Mode": "DX11-FL",
-      "MotorCode": "1A011432"
+      "mode": "DX11-FL",
+      "motor_code": "1A011432",
+      "print_nums": 20,
+      "small_label_cmd": "DX11-FL",
+      "large_label_cmd": "DX11-FL-B"
     },
     {
-      "Mode": "DX11-FR",
-      "MotorCode": "1A011431"
+      "mode": "DX11-FR",
+      "motor_code": "1A011431",
+      "print_nums": 20,
+      "small_label_cmd": "DX11-FR",
+      "large_label_cmd": "DX11-FR-B"
     },
     {
-      "Mode": "DX11-RL",
-      "MotorCode": "1A011431"
+      "mode": "DX11-RL",
+      "motor_code": "1A011431",
+      "print_nums": 20,
+      "small_label_cmd": "DX11-RL",
+      "large_label_cmd": "DX11-RL-B"
     },
     {
-      "Mode": "DX11-RR",
-      "MotorCode": "1A011432"
+      "mode": "DX11-RR",
+      "motor_code": "1A011432",
+      "print_nums": 20,
+      "small_label_cmd": "DX11-RR",
+      "large_label_cmd": "DX11-RR-B"
     }
 
   ]

@@ -10,26 +10,35 @@ namespace BarCode.Model
 {
     public class ConfigModel
     {
+        /// <summary>
+        /// 模式集合
+        /// </summary>
         [JsonProperty("modes")]
         public List<ModeModel>? Modes { get; set; } = null;
 
         /// <summary>
-        /// 主机名称
+        /// 打印机IP
         /// </summary>
-        [JsonProperty("host_name")]
-        public string HostName { get; set; }   = string.Empty;
+        [JsonProperty("printer_ip")]
+        public string PrinterIP { get; set; } = string.Empty;
 
         /// <summary>
-        /// 打印机名称0
+        /// 打印机端口
         /// </summary>
-        [JsonProperty("printer_name_0")]
-        public string PrinterName0 { get; set; } = string.Empty;
+        [JsonProperty("printer_port")]
+        public int PrinterPort { get; set; } = -1;
 
         /// <summary>
-        /// 打印机名称1
+        /// 蜂鸣器IP地址
         /// </summary>
-        [JsonProperty("printer_name_1")]
-        public string PrinterName1 { get; set; } = string.Empty;
+        [JsonProperty("buzzer_ip")]
+        public string BuzzerIP { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 蜂鸣器端口
+        /// </summary>
+        [JsonProperty("buzzer_port")]
+        public int BuzzerPort { get; set; } = -1;
 
         /// <summary>
         /// 批次数量

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -20,6 +21,7 @@ namespace BarCode.Model
         /// <summary>
         /// 模式对应的编码
         /// </summary>
+        [JsonProperty("mode")]
         public string Mode
         {
             get
@@ -36,6 +38,7 @@ namespace BarCode.Model
         /// <summary>
         /// 电机编码
         /// </summary>
+        [JsonProperty("motor_code")]
         public string MotorCode
         {
             get
@@ -50,15 +53,22 @@ namespace BarCode.Model
         }
 
         /// <summary>
-        /// 
+        /// 打印数量
         /// </summary>
-        /// <param name="mode"></param>
-        /// <param name="motor_code"></param>
-        public ModeModel(string mode,string motor_code) 
-        {
-            Mode = mode;
-            MotorCode = motor_code;
-        }
+        [JsonProperty("print_nums")]
+        public int PrintNums { get; set; } = 20;
+
+        /// <summary>
+        /// 小标签命令
+        /// </summary>
+        [JsonProperty("small_label_cmd")]
+        public string SmallLabelCMD { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 大标签指令命令
+        /// </summary>
+        [JsonProperty("large_label_cmd")]
+        public string LargeLabelCMD { get; set; } = string.Empty;
 
     }
 }
