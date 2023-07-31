@@ -337,7 +337,7 @@ namespace BarCode
             try
             {
                 _printer = new GoDEX(config.PrinterIP, config.PrinterPort);
-                _printer.Connect();
+                _printer.Open();
             }
             catch (Exception ex)
             {

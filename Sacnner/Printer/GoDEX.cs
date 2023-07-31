@@ -46,7 +46,7 @@ namespace Sacnner.Printer
         /// 连接打印机
         /// </summary>
         /// <exception cref="ArgumentException"></exception>
-        public void Connect()
+        public void Open()
         {
             if (string.IsNullOrEmpty(_host) || _port == null) 
             {
