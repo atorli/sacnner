@@ -12,7 +12,7 @@ namespace Sacnner.Alertor
         /// <summary>
         /// rtu客户端
         /// </summary>
-        private RTU rtu_client;
+        private ModBusRtu rtu_client;
 
         /// <summary>
         /// 发送的数据
@@ -36,7 +36,7 @@ namespace Sacnner.Alertor
         /// <param name="port"></param>
         public Alertor(string host,int port)
         {
-            rtu_client = new RTU(host,port);
+            rtu_client = new ModBusRtu(host,port);
         }
 
         public void Open()
