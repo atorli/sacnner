@@ -14,7 +14,7 @@ namespace BarCode.Model
         /// 模式集合
         /// </summary>
         [JsonProperty("modes")]
-        public List<ModeModel>? Modes { get; set; } = null;
+        public List<ModeModel> Modes { get; set; } = null;
 
         /// <summary>
         /// 打印机IP
@@ -31,13 +31,13 @@ namespace BarCode.Model
         /// <summary>
         /// 蜂鸣器IP地址
         /// </summary>
-        [JsonProperty("buzzer_ip")]
+        [JsonProperty("alertor_ip")]
         public string BuzzerIP { get; set; } = string.Empty;
 
         /// <summary>
         /// 蜂鸣器端口
         /// </summary>
-        [JsonProperty("buzzer_port")]
+        [JsonProperty("alertor_port")]
         public int BuzzerPort { get; set; } = -1;
 
         /// <summary>

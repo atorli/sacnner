@@ -40,6 +40,5 @@ namespace BarCode.Model
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Result"));
             }
         }
-
     }
 }

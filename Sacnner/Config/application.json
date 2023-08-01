@@ -5,9 +5,9 @@
   
   "printer_port": 9100,
 
-  "buzzer_ip": "192.168.0.2",
+  "alertor_ip": "192.168.0.2",
 
-  "buzzer_port": 9100,
+  "alertor_port": 9100,
 
   "batch_nums": 1,
 

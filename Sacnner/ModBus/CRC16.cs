@@ -13,7 +13,7 @@ namespace Sacnner.ModBus
         /// </summary>
         /// <param name="bytes"></param>
         /// <returns></returns>
-        public static byte[]? Calculate(byte[] bytes)
+        public static byte[] Calculate(byte[] bytes)
         {
             int len = bytes.Length;
             if (len > 0)
@@ -33,9 +33,7 @@ namespace Sacnner.ModBus
 
                 return new byte[] { lo, hi };
             }
-
             return null;
         }
-
     }
 }

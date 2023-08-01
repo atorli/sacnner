@@ -17,6 +17,7 @@ using System.Windows.Navigation;
 using BarCode.Model;
 using Newtonsoft.Json;
 using NLog;
+using Sacnner.Alertor;
 using Sacnner.ModBus;
 using Sacnner.Printer;
 
@@ -30,12 +31,12 @@ namespace BarCode
         /// <summary>
         /// 流程步骤信息
         /// </summary>
-        private FlowModel Flow = new FlowModel();
+        private FlowModel m_flow = new FlowModel();
 
         /// <summary>
         /// 配置对象
         /// </summary>
-        private ConfigModel _config;
+        private ConfigModel m_config;
 
         /// <summary>
         /// 匹配结果
@@ -45,17 +46,17 @@ namespace BarCode
         /// <summary>
         /// 日志对象
         /// </summary>
-        private Logger _logger;
+        private ILogger m_logger;
 
         /// <summary>
-        /// 打印机对象
+        /// 打印机
         /// </summary>
-        private GoDEX? _printer;
+        private GoDEX m_printer;
 
         /// <summary>
-        /// RTU客户端
+        /// 警报器
         /// </summary>
-        private RTU? _buzzer;
+        private IAlertor m_alertor;
 
         /// <summary>
         /// 批次处理计数器
@@ -69,26 +70,27 @@ namespace BarCode
         {
             InitializeComponent();
 
-            //初始化日子
-            InitLogger("Config/NLog.config");
+            //初始化日志模块
+            InitLogger(@"Config/NLog.config");
 
             //加载配置
             InitConfiguer(@"Config\application.json");
 
-            InitBuzzer(_config);
+            //初始化报警器
+            InitAlertor(m_config);
 
-            InitPrinter(_config);
+            //初初始化打印机
+            InitPrinter(m_config);
 
             //绑定下拉框
-            mode_combobox.ItemsSource = _config?.Modes;
+            mode_combobox.ItemsSource = m_config?.Modes;
 
             //绑定提示信息
-            tip.DataContext = Flow;
-            Flow.Step = "请启动设备";
+            tip.DataContext = m_flow;
+            m_flow.Step = "请启动设备";
 
             //绑定结果展示上下文
-            result_display_grid.DataContext = compare_result_model;        
-
+            result_display_grid.DataContext = compare_result_model;
         }
 
         /// <summary>
@@ -112,12 +114,12 @@ namespace BarCode
         /// <param name="e"></param>
         private void mode_combobox_DropDownClosed(object sender, EventArgs e)
         {
-            pring_big_label.IsEnabled = true;
+            large_label_btn.IsEnabled = true;
             code_textbox.IsEnabled = true;
 
             InputGetFoucs();
 
-            Flow.Step = "请扫描电机标签";
+            m_flow.Step = "请扫描电机标签";
         }
 
         /// <summary>
@@ -131,7 +133,7 @@ namespace BarCode
             stop.IsEnabled = true;
             mode_combobox.IsEnabled = true;
 
-            Flow.Step = "请标签选型";
+            m_flow.Step = "请标签选型";
         }
 
         /// <summary>
@@ -150,11 +152,20 @@ namespace BarCode
             code_textbox.IsEnabled = false;
             mode_combobox.IsEnabled = false;
             stop.IsEnabled = false;
-            pring_big_label.IsEnabled= false;
+            large_label_btn.IsEnabled= false;
 
             start.IsEnabled = true;
+            m_flow.Step = "请启动设备";
 
-            Flow.Step = "请启动设备";
+            try
+            {
+                m_alertor.RedLightOff();
+                m_alertor.GreenLightOff();
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show($"关闭报警灯失败:{ex.Message}","错误",MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         /// <summary>
@@ -166,115 +177,62 @@ namespace BarCode
         {
             if (code_textbox.Text.EndsWith(Environment.NewLine))
             {
-                //匹配到换行就表示数据结束                
-                string input = code_textbox.Text.Trim();
+                try 
+                {                         
+                    string input = code_textbox.Text.Trim();
+                    var mode = mode_combobox.SelectedItem as ModeModel;
 
-                var mode = mode_combobox.SelectedItem as ModeModel;
-
-                if (mode != null)
-                {
-                    if (input != mode.MotorCode)
+                    if (mode != null)
                     {
-                        Flow.Step = "匹配失败";
-                        compare_result_model.Color = "Red";
-                        compare_result_model.Result = "失败";
-
-                        _logger.Error($"扫描的电机零件号与选择的电机零件号不匹配,扫描的编码为:{input},选择的编码为{mode.MotorCode}");
-                        MessageBox.Show("扫描电机零件号与选择的电机零件号不匹配！", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    }
-                    else
-                    {
-                        try
+                        if (input != mode.MotorCode)
                         {
-                            Flow.Step = "正在打印小标签";
+                            m_flow.Step = "匹配失败";
+                            compare_result_model.Color = "Red";
+                            compare_result_model.Result = "失败";
+
+                            m_logger.Error($"扫描的电机零件号与选择的电机零件号不匹配,扫描的编码为:{input},选择的编码为{mode.MotorCode}");
+                            m_alertor.RedLightOn();//打开红色灯
+                            m_alertor.GreenLightOff();//关闭绿色灯
+                            MessageBox.Show("扫描电机零件号与选择的电机零件号不匹配！", "提示", MessageBoxButton.OK, MessageBoxImage.Warning); 
+                        }
+                        else
+                        {
+                            m_alertor.GreenLightOn();//打开绿色灯
+                            m_alertor.RedLightOff();//关闭红色灯
+                            m_flow.Step = "正在打印小标签";
                             compare_result_model.Color = "Green";
                             compare_result_model.Result = "成功";
 
-                            _logger.Info($"开始打印电机零件号{mode.MotorCode}对应的小标签");
-
                             GoDEXConfig config = new GoDEXConfig(mode.PrintNums, mode.SmallLabelCMD);
+                            m_printer?.Print(ref config);
 
-                            _printer?.Print(ref config);
-
-                            //打印小标签
-                            ++batch_counter;
-                            if (batch_counter == this._config?.BatchNums)
+                            if (batch_counter++ == this.m_config?.BatchNums)
                             {
-                                Flow.Step = "正在打印大标签";
-
-                                //如果达到大标签打印次数，开始打印打标签，并且重置计数器，开始下一轮计数
-                                _logger.Info($"达到批次处理上限，开始打印电机零件号{mode.MotorCode}对应的大标签");
-
-                                GoDEXConfig _cfg = new GoDEXConfig(1,mode.LargeLabelCMD);
-                                _printer?.Print(ref _cfg);
+                                m_flow.Step = "正在打印大标签";
+                                GoDEXConfig _cfg = new GoDEXConfig(1, mode.LargeLabelCMD);
+                                m_printer?.Print(ref _cfg);
                                 ResetBatchCounter();
                             }
                         }
-                        catch (Exception ex)
-                        {
-                            _logger.Error(ex);
-                            MessageBox.Show(ex.Message,"错误",MessageBoxButton.OK,MessageBoxImage.Error);
-                        }
+                    }
+                    else
+                    {
+                        m_logger.Error("模式对象不存在");
+                        MessageBox.Show("模式对象不存在", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                 }
-                else
+                catch (Exception ex)
                 {
-                    _logger.Error("模式对象不存在");
-                    MessageBox.Show("模式对象不存在", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    m_logger.Error(ex);
+                    MessageBox.Show(ex.Message, "错误", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
 
                 //清空输入框的内容
                 code_textbox.Clear();
                 //输入框再次获取焦点
                 InputGetFoucs();
-                Flow.Step = "请扫描电机标签";
+                m_flow.Step = "请扫描电机标签";
             }
-        }
-
-        /// <summary>
-        /// 关闭窗体时清理资源
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void Window_Closed(object sender, EventArgs e)
-        {
-            _printer?.Dispose();
-            _buzzer?.Dispose();
-        }
-
-        /// <summary>
-        /// 打印大标签事件处理程序
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void pring_big_label_Click(object sender, RoutedEventArgs e)
-        {
-            Flow.Step = "正在打印大标签";
-            try
-            {
-                var mode = mode_combobox.SelectedItem as ModeModel;
-
-                if(mode != null)
-                {
-                    GoDEXConfig config = new GoDEXConfig(mode.PrintNums, mode.LargeLabelCMD);
-                    _printer?.Print(ref config);
-                }
-                else
-                {
-                    _logger.Error("模式对象不存在.");
-                    MessageBox.Show("模式对象不存在", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-                }                 
-                //_rtu_client.Send(new List<byte> { 0x01,0x0F,0x00,0x00,0x00,0x08,0x01,0x07});
-            }
-            catch(Exception ex)
-            {
-                _logger.Error(ex);
-                MessageBox.Show(ex.Message,"错误",MessageBoxButton.OK,MessageBoxImage.Error);
-            }
-
-            InputGetFoucs();
-
-            Flow.Step = "请扫描电机标签";
         }
 
         /// <summary>
@@ -308,7 +266,7 @@ namespace BarCode
                 }
                 else
                 {
-                    _config = config;
+                    m_config = config;
                 }
             }
             catch (Exception ex)
@@ -323,8 +281,15 @@ namespace BarCode
         /// <returns></returns>
         private void InitLogger(string path)
         {
-            LogManager.Setup().LoadConfigurationFromFile(path);
-            _logger =  LogManager.GetCurrentClassLogger();
+            try
+            {
+                LogManager.Setup().LoadConfigurationFromFile(path);
+                m_logger = LogManager.GetCurrentClassLogger();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"加载日志模块失败:{ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         /// <summary>
@@ -336,8 +301,8 @@ namespace BarCode
         {
             try
             {
-                _printer = new GoDEX(config.PrinterIP, config.PrinterPort);
-                _printer.Open();
+                m_printer = new GoDEX(config.PrinterIP, config.PrinterPort);
+                m_printer.Open();
             }
             catch (Exception ex)
             {
@@ -350,16 +315,80 @@ namespace BarCode
         /// </summary>
         /// <param name="config"></param>
         /// <returns></returns>
-        private void InitBuzzer(ConfigModel config)
+        private void InitAlertor(ConfigModel config)
         {
             try
             {
-                _buzzer = new RTU(config.BuzzerIP, config.BuzzerPort);
-                _buzzer.Connect();
+                m_alertor = new Alertor(config.BuzzerIP, config.BuzzerPort);
+                m_alertor.Open();
             }
             catch(Exception ex)
             {
                 MessageBox.Show($"初始化警报失败:{ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        /// <summary>
+        /// 打印大标签事件处理程序
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void large_label_btn_Click(object sender, RoutedEventArgs e)
+        {
+            m_flow.Step = "正在打印大标签";
+            try
+            {
+                var mode = mode_combobox.SelectedItem as ModeModel;
+
+                if (mode != null)
+                {
+                    GoDEXConfig config = new GoDEXConfig(mode.PrintNums, mode.LargeLabelCMD);
+                    m_printer?.Print(ref config);
+                }
+                else
+                {
+                    m_logger.Error("模式对象不存在.");
+                    MessageBox.Show("模式对象不存在", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                m_logger.Error(ex);
+                MessageBox.Show(ex.Message, "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
+            InputGetFoucs();
+
+            m_flow.Step = "请扫描电机标签";
+        }
+
+        /// <summary>
+        /// 关闭窗体时清理资源
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Window_Closed(object sender, EventArgs e)
+        {
+            m_printer.Dispose();
+            m_alertor.Dispose();
+        }
+
+        /// <summary>
+        /// 窗体加载事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                //起始状态关闭两个灯
+                m_alertor.RedLightOff();
+                m_alertor.GreenLightOff();
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show($"关闭报警灯失败:{ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }

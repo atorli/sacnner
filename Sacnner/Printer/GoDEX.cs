@@ -13,22 +13,22 @@ namespace Sacnner.Printer
         /// <summary>
         /// 打印机ip地址
         /// </summary>
-        private string _host = string.Empty;
+        private string m_host = string.Empty;
 
         /// <summary>
         /// 端口号
         /// </summary>
-        private int? _port;
+        private int? m_port;
 
         /// <summary>
         /// 打印指令模板
         /// </summary>
-        private string template = "^{0}\r\nE\r\n~P{1}\r";
+        private string m_template = "^{0}\r\nE\r\n~P{1}\r";
 
         /// <summary>
         /// 打印机客户端socket
         /// </summary>
-        private Socket _socket;
+        private Socket m_socket;
 
         /// <summary>
         /// 通过host和prot初始化对象
@@ -37,9 +37,9 @@ namespace Sacnner.Printer
         /// <param name="port">打印机端口号</param>
         public GoDEX(string host,int port) 
         {
-            _host=host;
-            _port=port;
-            _socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
+            m_host=host;
+            m_port=port;
+            m_socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
         }
 
         /// <summary>
@@ -48,12 +48,12 @@ namespace Sacnner.Printer
         /// <exception cref="ArgumentException"></exception>
         public void Open()
         {
-            if (string.IsNullOrEmpty(_host) || _port == null) 
+            if (string.IsNullOrEmpty(m_host) || m_port == null) 
             {
                 throw new ArgumentException("打印机ip地址或者端口号无效");
             }
 
-            _socket.Connect(_host, _port.Value);
+            m_socket.Connect(m_host, m_port.Value);
         }
 
         /// <summary>
@@ -61,9 +61,8 @@ namespace Sacnner.Printer
         /// </summary>
         public void Close()
         {
-            _socket.Close();
+            m_socket.Close();
         }
-
 
         /// <summary>
         /// 释放socket对象
@@ -80,16 +79,17 @@ namespace Sacnner.Printer
         /// <param name="config">包含打印配置的对象</param>
         public void Print(ref GoDEXConfig config)
         {
-            string content = string.Format(template, config.TemplateName, config.PrintNums);
+            string content = string.Format(m_template, config.TemplateName, config.PrintNums);
 
             byte[] buffer = Encoding.ASCII.GetBytes(content);
 
-            _socket.Send(buffer);
+            m_socket.Send(buffer);
         }
-
-
     }
 
+    /// <summary>
+    /// 打印配置
+    /// </summary>
     public struct GoDEXConfig
     {
         public int PrintNums { get;private set; }
