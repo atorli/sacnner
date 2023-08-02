@@ -17,7 +17,7 @@ namespace Sacnner.Alertor
         /// <summary>
         /// 发送的数据
         /// </summary>
-        private List<Byte> data = new List<byte> { 0x01, 0x0F, 0x00, 0x00, 0x00, 0x08, 0x01, 0x00};
+       // private List<Byte> data = new List<byte> { 0x01, 0x0F, 0x00, 0x00, 0x00, 0x08, 0x01, 0xFF};
 
         /// <summary>
         /// 当前的状态
@@ -59,7 +59,7 @@ namespace Sacnner.Alertor
             lock (lock_object)
             {
                 current_state &= 0xFE;//将 bit 0 置 0
-                data[7] = current_state;
+                List<Byte> data = new List<byte> { 0x01, 0x0F, 0x00, 0x00, 0x00, 0x08, 0x01, current_state };
                 rtu_client.Send(data);
             }
         }
@@ -69,7 +69,7 @@ namespace Sacnner.Alertor
             lock(lock_object)
             {
                 current_state |= 0x01;//将 bit 0 置 1
-                data[7] = current_state;
+                List<Byte> data = new List<byte> { 0x01, 0x0F, 0x00, 0x00, 0x00, 0x08, 0x01, current_state };
                 rtu_client.Send(data);
             }
         }
@@ -79,7 +79,7 @@ namespace Sacnner.Alertor
             lock (lock_object)
             {
                 current_state &= 0xFD;
-                data[7] = current_state; 
+                List<Byte> data = new List<byte> { 0x01, 0x0F, 0x00, 0x00, 0x00, 0x08, 0x01, current_state };
                 rtu_client.Send(data);
             }
         }
@@ -89,7 +89,7 @@ namespace Sacnner.Alertor
             lock (lock_object)
             {
                 current_state |= 0x02;
-                data[7] = current_state;
+                List<Byte> data = new List<byte> { 0x01, 0x0F, 0x00, 0x00, 0x00, 0x08, 0x01, current_state };
                 rtu_client.Send(data);
             }
         }

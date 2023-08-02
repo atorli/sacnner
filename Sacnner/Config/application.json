@@ -1,6 +1,4 @@
 {
-  "host_name": "mechrevo",
-
   "printer_ip": "192.168.0.1",
   
   "printer_port": 9100,
@@ -9,7 +7,7 @@
 
   "alertor_port": 9100,
 
-  "batch_nums": 1,
+  "batch_nums": 36,
 
   "modes": [
     {

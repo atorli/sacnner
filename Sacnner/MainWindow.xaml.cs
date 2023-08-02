@@ -76,12 +76,6 @@ namespace BarCode
             //加载配置
             InitConfiguer(@"Config\application.json");
 
-            //初始化报警器
-            InitAlertor(m_config);
-
-            //初初始化打印机
-            InitPrinter(m_config);
-
             //绑定下拉框
             mode_combobox.ItemsSource = m_config?.Modes;
 
@@ -178,7 +172,7 @@ namespace BarCode
             if (code_textbox.Text.EndsWith(Environment.NewLine))
             {
                 try 
-                {                         
+                {
                     string input = code_textbox.Text.Trim();
                     var mode = mode_combobox.SelectedItem as ModeModel;
 
@@ -382,6 +376,12 @@ namespace BarCode
         {
             try
             {
+                //初始化报警器
+                InitAlertor(m_config);
+
+                //初初始化打印机
+                InitPrinter(m_config);
+
                 //起始状态关闭两个灯
                 m_alertor.RedLightOff();
                 m_alertor.GreenLightOff();
