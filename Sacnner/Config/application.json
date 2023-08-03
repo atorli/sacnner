@@ -1,7 +1,11 @@
 {
-  "printer_ip": "192.168.0.1",
-  
-  "printer_port": 9100,
+  "printer0_ip": "192.168.0.1",
+
+  "printer0_port": 9100,
+
+  "printer1_ip": "192.168.0.1",
+
+  "printer1_port": 9101,
 
   "alertor_ip": "192.168.0.2",
 

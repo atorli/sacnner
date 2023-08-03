@@ -19,14 +19,21 @@ namespace BarCode.Model
         /// <summary>
         /// 打印机IP
         /// </summary>
-        [JsonProperty("printer_ip")]
-        public string PrinterIP { get; set; } = string.Empty;
+        [JsonProperty("printer0_ip")]
+        public string Printer0IP { get; set; } = string.Empty;
 
         /// <summary>
         /// 打印机端口
         /// </summary>
-        [JsonProperty("printer_port")]
-        public int PrinterPort { get; set; } = -1;
+        [JsonProperty("printer0_port")]
+        public int Printer0Port { get; set; } = -1;
+
+
+        [JsonProperty("printer1_ip")]
+        public string Printer1IP { get;set; } = string.Empty;
+
+        [JsonProperty("printer1_port")]
+        public int Printer1Port { get; set;} = -1;
 
         /// <summary>
         /// 蜂鸣器IP地址

@@ -51,7 +51,12 @@ namespace BarCode
         /// <summary>
         /// 打印机
         /// </summary>
-        private GoDEX m_printer;
+        private GoDEX m_small_printer;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private GoDEX m_large_printer;
 
         /// <summary>
         /// 警报器
@@ -153,8 +158,7 @@ namespace BarCode
 
             try
             {
-                m_alertor.RedLightOff();
-                m_alertor.GreenLightOff();
+                m_alertor.CloseAllLight();
             }
             catch(Exception ex)
             {
@@ -186,25 +190,25 @@ namespace BarCode
 
                             m_logger.Error($"扫描的电机零件号与选择的电机零件号不匹配,扫描的编码为:{input},选择的编码为{mode.MotorCode}");
                             m_alertor.RedLightOn();//打开红色灯
-                            m_alertor.GreenLightOff();//关闭绿色灯
+                            //m_alertor.GreenLightOff();//关闭绿色灯
                             MessageBox.Show("扫描电机零件号与选择的电机零件号不匹配！", "提示", MessageBoxButton.OK, MessageBoxImage.Warning); 
                         }
                         else
                         {
                             m_alertor.GreenLightOn();//打开绿色灯
-                            m_alertor.RedLightOff();//关闭红色灯
+                            //m_alertor.RedLightOff();//关闭红色灯
                             m_flow.Step = "正在打印小标签";
                             compare_result_model.Color = "Green";
                             compare_result_model.Result = "成功";
 
                             GoDEXConfig config = new GoDEXConfig(mode.PrintNums, mode.SmallLabelCMD);
-                            m_printer?.Print(ref config);
+                            m_small_printer?.Print(ref config);
 
-                            if (batch_counter++ == this.m_config?.BatchNums)
+                            if (batch_counter++ == m_config.BatchNums)
                             {
                                 m_flow.Step = "正在打印大标签";
                                 GoDEXConfig _cfg = new GoDEXConfig(1, mode.LargeLabelCMD);
-                                m_printer?.Print(ref _cfg);
+                                m_large_printer.Print(ref _cfg);
                                 ResetBatchCounter();
                             }
                         }
@@ -295,8 +299,11 @@ namespace BarCode
         {
             try
             {
-                m_printer = new GoDEX(config.PrinterIP, config.PrinterPort);
-                m_printer.Open();
+                m_small_printer = new GoDEX(config.Printer0IP, config.Printer0Port);
+                m_small_printer.Open();
+
+                m_large_printer = new GoDEX(config.Printer1IP, config.Printer1Port);
+                m_large_printer.Open();
             }
             catch (Exception ex)
             {
@@ -336,8 +343,8 @@ namespace BarCode
 
                 if (mode != null)
                 {
-                    GoDEXConfig config = new GoDEXConfig(mode.PrintNums, mode.LargeLabelCMD);
-                    m_printer?.Print(ref config);
+                    GoDEXConfig config = new GoDEXConfig(1, mode.LargeLabelCMD);
+                    m_large_printer.Print(ref config);
                 }
                 else
                 {
@@ -363,7 +370,7 @@ namespace BarCode
         /// <param name="e"></param>
         private void Window_Closed(object sender, EventArgs e)
         {
-            m_printer.Dispose();
+            m_small_printer.Dispose();
             m_alertor.Dispose();
         }
 
@@ -383,8 +390,9 @@ namespace BarCode
                 InitPrinter(m_config);
 
                 //起始状态关闭两个灯
-                m_alertor.RedLightOff();
-                m_alertor.GreenLightOff();
+                m_alertor.CloseAllLight();
+                //m_alertor.RedLightOff();
+                //m_alertor.GreenLightOff();
             }
             catch(Exception ex)
             {

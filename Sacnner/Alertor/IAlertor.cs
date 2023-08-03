@@ -29,7 +29,8 @@ namespace Sacnner.Alertor
         /// <summary>
         /// 红灯关
         /// </summary>
-        public void RedLightOff();
+        //public void RedLightOff();
+        //public void RedLightOff();
 
         /// <summary>
         /// 绿灯开
@@ -39,6 +40,8 @@ namespace Sacnner.Alertor
         /// <summary>
         /// 绿灯关
         /// </summary>
-        public void GreenLightOff();
+        //public void GreenLightOff();
+
+        public void CloseAllLight();
     }
 }
