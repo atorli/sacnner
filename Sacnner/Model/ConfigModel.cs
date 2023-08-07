@@ -30,10 +30,10 @@ namespace BarCode.Model
 
 
         [JsonProperty("printer1_ip")]
-        public string Printer1IP { get;set; } = string.Empty;
+        public string Printer1IP { get; set; } = string.Empty;
 
         [JsonProperty("printer1_port")]
-        public int Printer1Port { get; set;} = -1;
+        public int Printer1Port { get; set; } = -1;
 
         /// <summary>
         /// 蜂鸣器IP地址
@@ -52,5 +52,11 @@ namespace BarCode.Model
         /// </summary>
         [JsonProperty("batch_nums")]
         public int BatchNums { get; set; }
+
+        /// <summary>
+        /// 判断是键盘输入还是扫码枪输入的最大间隔时间
+        /// </summary>
+        [JsonProperty("max_interval_time")]
+        public int MaxIntervalTime { get; set; }
     }
 }

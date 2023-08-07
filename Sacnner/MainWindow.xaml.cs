@@ -68,6 +68,8 @@ namespace BarCode
         /// </summary>
         private int batch_counter = 0;
 
+        private DateTime? last_press_time = null;
+
         /// <summary>
         /// 默认构造器，初始化一些配置
         /// </summary>
@@ -103,7 +105,7 @@ namespace BarCode
             motor_code_label.DataContext = mode_combobox.SelectedItem;
 
             //每次切换类型将批次处理数量清0
-            ResetBatchCounter();        
+            ResetBatchCounter();
         }
 
         /// <summary>
@@ -151,7 +153,7 @@ namespace BarCode
             code_textbox.IsEnabled = false;
             mode_combobox.IsEnabled = false;
             stop.IsEnabled = false;
-            large_label_btn.IsEnabled= false;
+            large_label_btn.IsEnabled = false;
 
             start.IsEnabled = true;
             m_flow.Step = "请启动设备";
@@ -160,9 +162,9 @@ namespace BarCode
             {
                 m_alertor.CloseAllLight();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                MessageBox.Show($"关闭报警灯失败:{ex.Message}","错误",MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"关闭报警灯失败:{ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -173,64 +175,90 @@ namespace BarCode
         /// <param name="e"></param>
         private void code_textbox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (code_textbox.Text.EndsWith(Environment.NewLine))
+            if (last_press_time != null)
             {
-                try 
+                TimeSpan ts = DateTime.Now.Subtract(last_press_time.Value);
+                if (ts.Milliseconds > m_config.MaxIntervalTime)
                 {
-                    string input = code_textbox.Text.Trim();
-                    var mode = mode_combobox.SelectedItem as ModeModel;
-
-                    if (mode != null)
+                    //如果输入时间大于50ms，则认为是手动输入，那么就清空输入框的值
+                    code_textbox.Clear();
+                }
+                else
+                {
+                    if (code_textbox.Text.EndsWith(Environment.NewLine))
                     {
-                        if (input != mode.MotorCode)
+                        try
                         {
-                            m_flow.Step = "匹配失败";
-                            compare_result_model.Color = "Red";
-                            compare_result_model.Result = "失败";
+                            string input = code_textbox.Text.Trim();
 
-                            m_logger.Error($"扫描的电机零件号与选择的电机零件号不匹配,扫描的编码为:{input},选择的编码为{mode.MotorCode}");
-                            m_alertor.RedLightOn();//打开红色灯
-                            //m_alertor.GreenLightOff();//关闭绿色灯
-                            MessageBox.Show("扫描电机零件号与选择的电机零件号不匹配！", "提示", MessageBoxButton.OK, MessageBoxImage.Warning); 
-                        }
-                        else
-                        {
-                            m_alertor.GreenLightOn();//打开绿色灯
-                            //m_alertor.RedLightOff();//关闭红色灯
-                            m_flow.Step = "正在打印小标签";
-                            compare_result_model.Color = "Green";
-                            compare_result_model.Result = "成功";
-
-                            GoDEXConfig config = new GoDEXConfig(mode.PrintNums, mode.SmallLabelCMD);
-                            m_small_printer?.Print(ref config);
-
-                            if (batch_counter++ == m_config.BatchNums)
+                            //如果字符串长度大于8，则截取前8位
+                            if(input.Length > 8)
                             {
-                                m_flow.Step = "正在打印大标签";
-                                GoDEXConfig _cfg = new GoDEXConfig(1, mode.LargeLabelCMD);
-                                m_large_printer.Print(ref _cfg);
-                                ResetBatchCounter();
+                                input = input.Substring(0, 8);
+                            }
+                            var mode = mode_combobox.SelectedItem as ModeModel;
+
+                            if (mode != null)
+                            {
+                                if (input != mode.MotorCode)
+                                {
+                                    m_flow.Step = "匹配失败";
+                                    compare_result_model.Color = "Red";
+                                    compare_result_model.Result = "失败";
+
+                                    m_logger.Error($"扫描的电机零件号与选择的电机零件号不匹配,扫描的编码为:{input},选择的编码为{mode.MotorCode}");
+                                    m_alertor.RedLightOn();//打开红色灯
+                                                           //m_alertor.GreenLightOff();//关闭绿色灯
+                                    MessageBox.Show("扫描电机零件号与选择的电机零件号不匹配！", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+                                }
+                                else
+                                {
+                                    m_alertor.GreenLightOn();//打开绿色灯
+                                                             //m_alertor.RedLightOff();//关闭红色灯
+                                    m_flow.Step = "正在打印小标签";
+                                    compare_result_model.Color = "Green";
+                                    compare_result_model.Result = "成功";
+
+                                    GoDEXConfig config = new GoDEXConfig(mode.PrintNums, mode.SmallLabelCMD,mode.SmallLabelDateFormat,mode.SmallLabelTimeFormat);
+                                    m_small_printer?.Print(ref config);
+
+                                    if (batch_counter++ == m_config.BatchNums)
+                                    {
+                                        m_flow.Step = "正在打印大标签";
+                                        GoDEXConfig _cfg = new GoDEXConfig(1, mode.LargeLabelCMD,mode.LargeLabelDateFormat,mode.LargeLaelTimeFormat);
+                                        m_large_printer.Print(ref _cfg);
+                                        ResetBatchCounter();
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                m_logger.Error("模式对象不存在");
+                                MessageBox.Show("模式对象不存在", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
                             }
                         }
-                    }
-                    else
-                    {
-                        m_logger.Error("模式对象不存在");
-                        MessageBox.Show("模式对象不存在", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    m_logger.Error(ex);
-                    MessageBox.Show(ex.Message, "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
+                        catch (Exception ex)
+                        {
+                            m_logger.Error(ex);
+                            MessageBox.Show(ex.Message, "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                        }
 
-                //清空输入框的内容
-                code_textbox.Clear();
-                //输入框再次获取焦点
-                InputGetFoucs();
-                m_flow.Step = "请扫描电机标签";
+                        //清空输入框的内容
+                        code_textbox.Clear();
+                        //输入框再次获取焦点
+
+                        m_flow.Step = "请扫描电机标签";
+                    }
+                }
             }
+            else
+            {
+                //如果last_press_time为null,说明是第一次输入，那么更新为当前时间即可
+                last_press_time = DateTime.Now;
+            }
+
+            //重新获取焦点
+            InputGetFoucs();
         }
 
         /// <summary>
@@ -260,7 +288,7 @@ namespace BarCode
                 var config = JsonConvert.DeserializeObject<ConfigModel>(File.ReadAllText(path));
                 if (config == null)
                 {
-                    MessageBox.Show($"加载配置文件失败,对象为空引用.","错误",MessageBoxButton.OK,MessageBoxImage.Error);
+                    MessageBox.Show($"加载配置文件失败,对象为空引用.", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
                 else
                 {
@@ -297,18 +325,11 @@ namespace BarCode
         /// <returns></returns>
         private void InitPrinter(ConfigModel config)
         {
-            try
-            {
-                m_small_printer = new GoDEX(config.Printer0IP, config.Printer0Port);
-                m_small_printer.Open();
+            m_small_printer = new GoDEX(config.Printer0IP, config.Printer0Port);
+            m_small_printer.Open();
 
-                m_large_printer = new GoDEX(config.Printer1IP, config.Printer1Port);
-                m_large_printer.Open();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"初始化打印机失败:{ex.Message}","错误",MessageBoxButton.OK,MessageBoxImage.Error);
-            }
+            m_large_printer = new GoDEX(config.Printer1IP, config.Printer1Port);
+            m_large_printer.Open();
         }
 
         /// <summary>
@@ -318,15 +339,8 @@ namespace BarCode
         /// <returns></returns>
         private void InitAlertor(ConfigModel config)
         {
-            try
-            {
-                m_alertor = new Alertor(config.BuzzerIP, config.BuzzerPort);
-                m_alertor.Open();
-            }
-            catch(Exception ex)
-            {
-                MessageBox.Show($"初始化警报失败:{ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+            m_alertor = new Alertor(config.BuzzerIP, config.BuzzerPort);
+            m_alertor.Open();
         }
 
         /// <summary>
@@ -343,7 +357,7 @@ namespace BarCode
 
                 if (mode != null)
                 {
-                    GoDEXConfig config = new GoDEXConfig(1, mode.LargeLabelCMD);
+                    GoDEXConfig config = new GoDEXConfig(1, mode.LargeLabelCMD,mode.LargeLabelDateFormat,mode.LargeLaelTimeFormat);
                     m_large_printer.Print(ref config);
                 }
                 else
@@ -370,8 +384,9 @@ namespace BarCode
         /// <param name="e"></param>
         private void Window_Closed(object sender, EventArgs e)
         {
-            m_small_printer.Dispose();
-            m_alertor.Dispose();
+            m_small_printer?.Dispose();
+            m_large_printer?.Dispose();
+            m_alertor?.Dispose();
         }
 
         /// <summary>
@@ -381,23 +396,23 @@ namespace BarCode
         /// <param name="e"></param>
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            try
-            {
-                //初始化报警器
-                InitAlertor(m_config);
+            //Task.Run(() =>
+            //{
+                try
+                {
+                    //初始化报警器
+                    InitAlertor(m_config);
+                    //初初始化打印机
+                    InitPrinter(m_config);
 
-                //初初始化打印机
-                InitPrinter(m_config);
-
-                //起始状态关闭两个灯
-                m_alertor.CloseAllLight();
-                //m_alertor.RedLightOff();
-                //m_alertor.GreenLightOff();
-            }
-            catch(Exception ex)
-            {
-                MessageBox.Show($"关闭报警灯失败:{ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+                    //起始状态关闭两个灯
+                    m_alertor.CloseAllLight();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"初始化失败:{ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            //});
         }
     }
 }

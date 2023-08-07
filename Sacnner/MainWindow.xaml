@@ -70,7 +70,7 @@
 
             <StackPanel Grid.Row="1" Grid.Column="2">
                 <Label Height="50" FontSize="20" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Content="扫描零件号:"></Label>
-                <TextBox IsEnabled="False" AcceptsReturn="true" TextChanged="code_textbox_TextChanged" Margin="20,10,20,0" BorderBrush="Black" Name="code_textbox" Height="50" VerticalContentAlignment="Center" FontSize="20" InputMethod.IsInputMethodEnabled="False"></TextBox>
+                <TextBox IsEnabled="False"  AcceptsReturn="true" TextChanged="code_textbox_TextChanged" Margin="20,10,20,0" BorderBrush="Black" Name="code_textbox" Height="50" VerticalContentAlignment="Center" FontSize="20" InputMethod.IsInputMethodEnabled="False"/>
             </StackPanel>
         </Grid>
 

@@ -23,7 +23,7 @@ namespace Sacnner.Printer
         /// <summary>
         /// 打印指令模板
         /// </summary>
-        private string m_template = "^{0}\r\nE\r\n~P{1}\r";
+        private string m_template = "^{0}\r\n{1}\r\n{2}\r\nE\r\n~P{3}\r";
 
         /// <summary>
         /// 打印机客户端socket
@@ -50,7 +50,7 @@ namespace Sacnner.Printer
         {
             if (string.IsNullOrEmpty(m_host) || m_port == null) 
             {
-                throw new ArgumentException("打印机ip地址或者端口号无效");
+                throw new ArgumentException("IP地址或者端口号无效");
             }
 
             m_socket.Connect(m_host, m_port.Value);
@@ -79,7 +79,25 @@ namespace Sacnner.Printer
         /// <param name="config">包含打印配置的对象</param>
         public void Print(ref GoDEXConfig config)
         {
-            string content = string.Format(m_template, config.TemplateName, config.PrintNums);
+            StringBuilder sb = new StringBuilder();
+            sb.Append($"^{config.TemplateName}");
+
+            //插入日期
+            DateTime now = DateTime.Now;
+
+            sb.Append($"\r\n{now.ToString(config.DateFormat)}");
+
+            //插入时间，某些标签的格式不需要时间
+            if (!string.IsNullOrEmpty(config.TimeFormat))
+            {
+                sb.Append($"\r\n{now.ToString(config.TimeFormat)}");
+            }
+
+            sb.Append($"\r\nE\r\n~P{config.PrintNums}\r");
+
+            //string content = string.Format(m_template, config.TemplateName, DateTime.Now.ToString("yy/MM/dd"),"",config.PrintNums);
+
+            string content = sb.ToString();
 
             byte[] buffer = Encoding.ASCII.GetBytes(content);
 
@@ -92,14 +110,32 @@ namespace Sacnner.Printer
     /// </summary>
     public struct GoDEXConfig
     {
-        public int PrintNums { get;private set; }
+        /// <summary>
+        /// 打印数量
+        /// </summary>
+        public int PrintNums { get; private set; }
 
+        /// <summary>
+        /// 模板名称
+        /// </summary>
         public string TemplateName { get; private set; }
 
-        public GoDEXConfig(int print_nums,string template_name)
+        /// <summary>
+        /// 日期格式
+        /// </summary>
+        public string DateFormat { get; private set; }
+
+        /// <summary>
+        /// 时间格式
+        /// </summary>
+        public string TimeFormat { get; private set; }
+
+        public GoDEXConfig(int print_nums,string template_name,string date_format,string time_format)
         {
             PrintNums = print_nums;
             TemplateName = template_name;
+            DateFormat = date_format;
+            TimeFormat = time_format;
         }
     }
 }

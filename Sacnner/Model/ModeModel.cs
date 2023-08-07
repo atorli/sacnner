@@ -70,5 +70,28 @@ namespace BarCode.Model
         [JsonProperty("large_label_cmd")]
         public string LargeLabelCMD { get; set; } = string.Empty;
 
+        /// <summary>
+        /// 小标签日期格式字符串
+        /// </summary>
+        [JsonProperty("small_label_date_format")]
+        public string SmallLabelDateFormat { get; set; }
+
+        /// <summary>
+        /// 小标签时间格式字符串
+        /// </summary>
+        [JsonProperty("small_label_time_format")]
+        public string SmallLabelTimeFormat { get; set; }
+
+        /// <summary>
+        /// 大标签日期格式字符串
+        /// </summary>
+        [JsonProperty("large_label_date_foramt")]
+        public string LargeLabelDateFormat { get; set; }
+
+        /// <summary>
+        /// 大标签时间格式字符串
+        /// </summary>
+        [JsonProperty("large_label_time_format")]
+        public string LargeLaelTimeFormat { get; set; }
     }
 }
