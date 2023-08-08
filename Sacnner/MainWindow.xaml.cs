@@ -175,13 +175,17 @@ namespace BarCode
         /// <param name="e"></param>
         private void code_textbox_TextChanged(object sender, TextChangedEventArgs e)
         {
+            DateTime now = DateTime.Now;
             if (last_press_time != null)
             {
-                TimeSpan ts = DateTime.Now.Subtract(last_press_time.Value);
+                TimeSpan ts = now.Subtract(last_press_time.Value);
                 if (ts.Milliseconds > m_config.MaxIntervalTime)
                 {
-                    //如果输入时间大于50ms，则认为是手动输入，那么就清空输入框的值
+                    /*如果输入时间大于50ms，则认为是手动输入，那么就清空输入框的值
+                     并且更新时间为当前时间    
+                     */
                     code_textbox.Clear();
+                    last_press_time = now;
                 }
                 else
                 {
@@ -208,13 +212,11 @@ namespace BarCode
 
                                     m_logger.Error($"扫描的电机零件号与选择的电机零件号不匹配,扫描的编码为:{input},选择的编码为{mode.MotorCode}");
                                     m_alertor.RedLightOn();//打开红色灯
-                                                           //m_alertor.GreenLightOff();//关闭绿色灯
                                     MessageBox.Show("扫描电机零件号与选择的电机零件号不匹配！", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
                                 }
                                 else
                                 {
                                     m_alertor.GreenLightOn();//打开绿色灯
-                                                             //m_alertor.RedLightOff();//关闭红色灯
                                     m_flow.Step = "正在打印小标签";
                                     compare_result_model.Color = "Green";
                                     compare_result_model.Result = "成功";
@@ -242,19 +244,24 @@ namespace BarCode
                             m_logger.Error(ex);
                             MessageBox.Show(ex.Message, "错误", MessageBoxButton.OK, MessageBoxImage.Error);
                         }
-
-                        //清空输入框的内容
                         code_textbox.Clear();
-                        //输入框再次获取焦点
-
                         m_flow.Step = "请扫描电机标签";
+                        //如果一次判断已经完成，那么将时间设置为null,
+                        //否则下次扫描的时候，会由于时间差而产生误判
+                        last_press_time = null;
+                    }
+                    else
+                    {
+                        //如果没有遇到换行符，那么说明还存在数据
+                        //更新时间即可
+                        last_press_time = now;
                     }
                 }
             }
             else
             {
                 //如果last_press_time为null,说明是第一次输入，那么更新为当前时间即可
-                last_press_time = DateTime.Now;
+                last_press_time = now;
             }
 
             //重新获取焦点

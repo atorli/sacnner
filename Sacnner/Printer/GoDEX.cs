@@ -21,11 +21,6 @@ namespace Sacnner.Printer
         private int? m_port;
 
         /// <summary>
-        /// 打印指令模板
-        /// </summary>
-        private string m_template = "^{0}\r\n{1}\r\n{2}\r\nE\r\n~P{3}\r";
-
-        /// <summary>
         /// 打印机客户端socket
         /// </summary>
         private Socket m_socket;
@@ -94,8 +89,6 @@ namespace Sacnner.Printer
             }
 
             sb.Append($"\r\nE\r\n~P{config.PrintNums}\r");
-
-            //string content = string.Format(m_template, config.TemplateName, DateTime.Now.ToString("yy/MM/dd"),"",config.PrintNums);
 
             string content = sb.ToString();
 
