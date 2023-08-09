@@ -57,6 +57,13 @@ namespace BarCode.Model
         /// 判断是键盘输入还是扫码枪输入的最大间隔时间
         /// </summary>
         [JsonProperty("max_interval_time")]
-        public int MaxIntervalTime { get; set; }
+        public int MaxIntervalTime { get; set; } = 50;
+
+        /// <summary>
+        /// 比较字符串截取长度
+        /// </summary>
+        [JsonProperty("match_regex")]
+        public string MatchRegex { get; set; }
+
     }
 }
