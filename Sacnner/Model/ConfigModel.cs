@@ -65,5 +65,11 @@ namespace BarCode.Model
         [JsonProperty("match_regex")]
         public string MatchRegex { get; set; }
 
+        /// <summary>
+        /// 打印失败重连次数
+        /// </summary>
+        [JsonProperty("max_reconnect_count")]
+        public uint MaxReconnectCount { get; set; }
+
     }
 }

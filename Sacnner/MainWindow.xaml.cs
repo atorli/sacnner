@@ -335,10 +335,10 @@ namespace BarCode
         /// <returns></returns>
         private void InitPrinter(ConfigModel config)
         {
-            smallPrinter = new GoDEX(config.Printer0IP, config.Printer0Port);
+            smallPrinter = new GoDEX(config.Printer0IP, config.Printer0Port,config.MaxReconnectCount);
             smallPrinter.Open();
 
-            largePrinter = new GoDEX(config.Printer1IP, config.Printer1Port);
+            largePrinter = new GoDEX(config.Printer1IP, config.Printer1Port,config.MaxReconnectCount);
             largePrinter.Open();
         }
 
@@ -414,6 +414,7 @@ namespace BarCode
             {
                 //初始化报警器
                 InitAlertor(config);
+                
                 //初初始化打印机
                 InitPrinter(config);
 

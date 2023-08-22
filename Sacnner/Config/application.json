@@ -17,6 +17,8 @@
 
   "match_regex": "1A.{6}",
 
+  "max_reconnect_count": 3,
+
   "modes": [
     {
       "mode": "EF1E-RL",

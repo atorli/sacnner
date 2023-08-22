@@ -18,23 +18,32 @@ namespace Sacnner.Printer
         /// <summary>
         /// 端口号
         /// </summary>
-        private int? m_port;
+        private int m_port = -1;
 
         /// <summary>
         /// 打印机客户端socket
         /// </summary>
-        private Socket m_socket;
+        private Socket m_socket = null;
+
+        /// <summary>
+        /// 打印失败重连的次数
+        /// </summary>
+        private uint m_MaxReConnectCnt;
 
         /// <summary>
         /// 通过host和prot初始化对象
         /// </summary>
         /// <param name="host">打印机ip地址</param>
         /// <param name="port">打印机端口号</param>
-        public GoDEX(string host,int port) 
+        public GoDEX(string host,int port,uint maxReConnectCnt = 3) 
         {
-            m_host=host;
+            if (string.IsNullOrEmpty(host) || port < 0 || port > 65535)
+            {
+                throw new ArgumentException("IP地址或者端口号无效");
+            }
+            m_host =host;
             m_port=port;
-            m_socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
+            m_MaxReConnectCnt = maxReConnectCnt;
         }
 
         /// <summary>
@@ -43,12 +52,8 @@ namespace Sacnner.Printer
         /// <exception cref="ArgumentException"></exception>
         public void Open()
         {
-            if (string.IsNullOrEmpty(m_host) || m_port == null) 
-            {
-                throw new ArgumentException("IP地址或者端口号无效");
-            }
-
-            m_socket.Connect(m_host, m_port.Value);
+            m_socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
+            m_socket.Connect(m_host, m_port);
         }
 
         /// <summary>
@@ -56,11 +61,20 @@ namespace Sacnner.Printer
         /// </summary>
         public void Close()
         {
-            m_socket.Close();
+            m_socket?.Close();
         }
 
         /// <summary>
-        /// 释放socket对象
+        /// 重新连接至客户端
+        /// </summary>
+        private void ReOpen()
+        {
+            Close();
+            Open();
+        }
+
+        /// <summary>
+        /// 清理所有本地资源
         /// </summary>
         /// <exception cref="NotImplementedException"></exception>
         public void Dispose()
@@ -94,7 +108,27 @@ namespace Sacnner.Printer
 
             byte[] buffer = Encoding.ASCII.GetBytes(content);
 
-            m_socket.Send(buffer);
+            int connectCnt = 0;
+            bool sendSuccess = false;
+
+            do
+            {
+                try
+                {
+                    m_socket.Send(buffer);
+                    sendSuccess = true;
+                }
+                catch (SocketException)
+                {
+                    ReOpen();
+                    ++connectCnt;
+                    if(connectCnt > m_MaxReConnectCnt)
+                    {
+                        throw new Exception($"超过最大重连次数，无法连接至打印机，打印失败!");
+                    }
+                }
+            }
+            while (!sendSuccess);
         }
     }
 
